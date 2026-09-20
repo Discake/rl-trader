@@ -1,0 +1,27 @@
+data:
+  tickers: ["AAPL", "MSFT", "GOOGL"]
+  start: "2015-01-01"
+  end: "2023-12-31"
+  indicators: ["rsi", "macd", "bb"]
+
+env:
+  lookback: 30
+  initial_balance: 100000
+  commission: 0.001
+  hmax: 100
+
+reward:
+  type: "sharpe"
+  window: 30
+
+agent:
+  name: "ppo"
+  lr: 3e-4
+  gamma: 0.99
+  n_steps: 2048
+  batch_size: 64
+
+training:
+  total_timesteps: 500000
+  eval_freq: 10000
+  seed: 42
