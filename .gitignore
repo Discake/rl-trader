@@ -217,6 +217,11 @@ __marimo__/
 
 #Logs
 /logs
+/tb_logs
 
 #Downloaded data / Cache
 /data
+
+#Models and checkpoints
+/best_model
+/checkpoints
