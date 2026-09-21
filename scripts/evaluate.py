@@ -45,7 +45,7 @@ def run_random_baseline(test_df, env_config, seed=42):
 
 
 def main() -> None:
-    config = load_config("configs/ppo_daily.yaml")
+    config = load_config("configs/sac_daily.yaml")
 
     # Данные
     df = DataLoader(cache_dir=config.paths.data_raw).load(

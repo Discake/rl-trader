@@ -13,7 +13,7 @@ agent:
   tau: 0.005
 
 training:
-  total_timesteps: 500000
+  total_timesteps: 100000
   early_stopping_patience: 20
 
 normalize:

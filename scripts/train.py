@@ -5,7 +5,7 @@ from src.utils.config import load_config
 
 
 def main() -> None:
-    config = load_config("configs/ppo_daily.yaml")
+    config = load_config("configs/sac_daily.yaml")
 
     # 1. Данные
     df = DataLoader(cache_dir=config.paths.data_raw).load(
