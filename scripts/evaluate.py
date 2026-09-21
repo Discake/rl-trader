@@ -44,7 +44,7 @@ def run_random_baseline(test_df, env_config, seed=42):
     return np.array(equity), env.trade_count, env.total_fees
 
 
-def main() -> None:
+def main(run_dir:str|Path) -> None:
     config = load_config("configs/sac_daily.yaml")
 
     # Данные
@@ -63,13 +63,17 @@ def main() -> None:
 
     results: dict[str, dict] = {}
 
+     # ← КЛЮЧЕВОЕ: обе стратегии стартуют с одного дня
+    lookback = config.env.lookback
+    test_df_aligned = test_df.iloc[lookback:].copy()
     # 1. Buy & hold
     bh_equity = buy_and_hold_equity(
-        test_df, config.data.tickers,
+        test_df_aligned, config.data.tickers,
         config.env.initial_balance,
         config.env.commission,
         config.env.slippage,
     )
+    returns_bh = np.diff(bh_equity) / bh_equity[:-1]
     results["buy_hold"] = compute_all_metrics(bh_equity, n_trades=len(config.data.tickers), total_fees=0.0)
 
     # 2. Random
@@ -79,8 +83,8 @@ def main() -> None:
     results["random"] = compute_all_metrics(rnd_equity, rnd_trades, rnd_fees)
 
     # 3. Обученная модель
-    best_model_path = Path(config.paths.best_model) / "best_model.zip"
-    vec_norm_path = Path(config.paths.logs) / "vec_normalize.pkl"
+    best_model_path = Path(run_dir + "/best_model" + "/best_model.zip")
+    vec_norm_path = Path(run_dir + "/logs" + "/vec_normalize.pkl")
 
     if best_model_path.exists() and vec_norm_path.exists():
         bt = Backtester(
@@ -90,6 +94,7 @@ def main() -> None:
             env_config=config.env,
         )
         out = bt.run(test_df)
+        returns_rl = np.diff(out["equity"]) / out["equity"][:-1]
         results["rl_agent"] = out["metrics"]
     else:
         print(f"[WARN] Модель не найдена: {best_model_path}")
@@ -105,6 +110,18 @@ def main() -> None:
             diff = results["rl_agent"][m] - results["buy_hold"][m]
             sign = "+" if diff > 0 else ""
             print(f"  {m:20s} {sign}{diff:.4f}")
+
+    # из Backtester.run получите equity_rl и equity_bh
+
+    mask_up = returns_bh > 0
+    mask_down = returns_bh < 0
+
+    beta_up = np.cov(returns_rl[mask_up], returns_bh[mask_up])[0,1] / np.var(returns_bh[mask_up])
+    beta_down = np.cov(returns_rl[mask_down], returns_bh[mask_down])[0,1] / np.var(returns_bh[mask_down])
+
+    print(f"Beta (up days):   {beta_up:.3f}")
+    print(f"Beta (down days): {beta_down:.3f}")
+    print(f"Asymmetry:        {beta_up - beta_down:+.3f}")
 
     import matplotlib.pyplot as plt
 
@@ -125,4 +142,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main("experiments/sac/fold0_seed45")

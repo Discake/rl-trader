@@ -2,13 +2,15 @@
 env:
   reward_type: "log_return"
   reward_params:
-    scale: 1000.0        # было 100
+    scale: 100.0
+  commission: 0.002      # было 0.001 — вдвое дороже
+  slippage: 0.001        # было 0.0005
 
 agent:
   name: "sac"
   learning_rate: 1.0e-4
   buffer_size: 100000
-  learning_starts: 1000
+  learning_starts: 5000
   batch_size: 256
   tau: 0.005
 
@@ -20,3 +22,8 @@ normalize:
   norm_obs: true
   norm_reward: false    # было true
   clip_obs: 10.0
+
+split:
+  method: "simple"
+  train_ratio: 0.70      # было 0.85
+  val_ratio: 0.15        # было 0.05

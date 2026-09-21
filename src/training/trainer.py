@@ -31,10 +31,17 @@ def make_env(df, env_config):
 class Trainer:
     """Обучает RL-агента по конфигу и сохраняет артефакты."""
 
-    def __init__(self, config: Config, train_df, val_df):
+    def __init__(
+        self,
+        config: Config,
+        train_df,
+        val_df,
+        run_dir: str | Path,
+    ) -> None:
         self.config = config
         self.train_df = train_df
         self.val_df = val_df
+        self.run_dir = Path(run_dir)
 
         self.paths = self._prepare_paths()
         self.train_env = self._build_train_env()
@@ -52,12 +59,11 @@ class Trainer:
     # ------------------------------------------------------------------
 
     def _prepare_paths(self) -> dict[str, Path]:
-        p = self.config.paths
         paths = {
-            "logs": Path(p.logs),
-            "checkpoints": Path(p.checkpoints),
-            "best_model": Path(p.best_model),
-            "tensorboard": Path(p.tensorboard),
+            "logs": self.run_dir / "logs",
+            "checkpoints": self.run_dir / "checkpoints",
+            "best_model": self.run_dir / "best_model",
+            "tensorboard": self.run_dir / "tensorboard",
         }
         for path in paths.values():
             path.mkdir(parents=True, exist_ok=True)

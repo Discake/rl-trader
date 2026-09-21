@@ -1,6 +1,7 @@
 """Загрузка модели и прогон на тестовых данных."""
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -39,7 +40,7 @@ class Backtester:
         if algo_name not in _ALGO_CLASSES:
             raise ValueError(f"Неизвестный алгоритм: {algo_name!r}")
 
-    def run(self, test_df) -> dict:
+    def run(self, test_df, save_to: str | Path | None = None) -> dict:
         """Прогон на test_df. Возвращает equity_curve, метрики и детали."""
         # 1. Собираем среду — та же, что при обучении, но на тестовых данных
         vec = DummyVecEnv([make_env(test_df, self.env_config)])
@@ -79,13 +80,34 @@ class Backtester:
 
         metrics = compute_all_metrics(equity, n_trades, total_fees)
 
+        # ---- Фикс: определяем final_positions здесь ----
         final_positions = last_info.get("positions")
         if final_positions is None:
-            final_positions = np.zeros(len(self.env_config.tickers), dtype=np.int64)
+            # среда не передала позиции — берём нулевой массив нужной длины
+            n_assets = len(self.env_config.tickers) if hasattr(self.env_config, "tickers") else 0
+            final_positions = np.zeros(n_assets, dtype=np.int64)
+        else:
+            final_positions = np.asarray(final_positions)
 
-        return {
+        result = {
             "equity": equity,
             "metrics": metrics,
-            "final_positions": np.asarray(final_positions),
+            "final_positions": final_positions,
             "final_balance": float(last_info.get("balance", 0.0)),
         }
+
+        if save_to is not None:
+            save_to = Path(save_to)
+            save_to.parent.mkdir(parents=True, exist_ok=True)
+            with save_to.open("w", encoding="utf-8") as f:
+                json.dump(
+                    {
+                        "metrics": metrics,
+                        "final_positions": final_positions.tolist(),
+                        "final_balance": result["final_balance"],
+                    },
+                    f,
+                    indent=2,
+                )
+
+        return result
