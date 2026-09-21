@@ -42,15 +42,20 @@ class PnLReward(RewardFn):
 
 
 class LogReturnReward(RewardFn):
-    """Логарифмическая доходность.
+    """Логарифмическая доходность, масштабированная под RL.
 
-    Симметрична для роста и падения, лучше масштабируется, чем PnL.
+    Без масштабирования reward за шаг ~0.001 — это в 1000 раз меньше,
+    чем в типичных RL-задачах (CartPole: reward=1). Это делает
+    hyperparameters (ent_coef, learning_rate) неадекватными.
     """
+
+    def __init__(self, scale: float = 100.0) -> None:
+        self.scale = scale
 
     def __call__(self, prev_value: float, curr_value: float, info: dict) -> float:
         if prev_value <= 0.0:
             return 0.0
-        return float(np.log(curr_value / prev_value))
+        return self.scale * float(np.log(curr_value / prev_value))
 
 
 class SharpeReward(RewardFn):
@@ -107,7 +112,7 @@ def build_reward(name: str, params: dict[str, Any] | None = None) -> RewardFn:
     if name == "pnl":
         return PnLReward()
     if name == "log_return":
-        return LogReturnReward()
+        return LogReturnReward(**params)
     if name == "sharpe":
         return SharpeReward(**params)
     if name == "cost_aware":

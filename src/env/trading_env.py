@@ -92,6 +92,7 @@ class TradingEnv(gym.Env):
         self.positions: np.ndarray = np.zeros(self.stock_dim, dtype=np.int64)
 
         self.total_fees: float = 0.0
+        self.trade_count: int = 0
 
     # ------------------------------------------------------------------
     # Gym API
@@ -111,6 +112,7 @@ class TradingEnv(gym.Env):
         self.reward_fn.reset()
 
         self.total_fees = 0.0
+        self.trade_count = 0
 
         return self._get_state(), {}
 
@@ -140,7 +142,8 @@ class TradingEnv(gym.Env):
             "balance": self.balance,
             "positions": self.positions.copy(),
             "day": self.day,
-            "total_fees": self.total_fees
+            "total_fees": self.total_fees,
+            "trade_count": self.trade_count
         }
         reward = self.reward_fn(prev_value, curr_value, info)
 
@@ -169,6 +172,7 @@ class TradingEnv(gym.Env):
                 max_shares = int(self.balance // cost_per_share)
                 shares = min(int(delta), max_shares)
                 if shares > 0:
+                    self.trade_count += 1
                     clean_cost = shares * price
                     actual_cost = shares * cost_per_share
                     self.total_fees += actual_cost - clean_cost
@@ -179,6 +183,7 @@ class TradingEnv(gym.Env):
                 revenue_per_share = sell_price * (1.0 - commission)
                 shares = min(int(-delta), int(self.positions[i]))
                 if shares > 0:
+                    self.trade_count += 1
                     clean_revenue = shares * price
                     actual_revenue = shares * revenue_per_share
                     self.total_fees += clean_revenue - actual_revenue

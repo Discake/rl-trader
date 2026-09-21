@@ -1,15 +1,18 @@
-# Наследует default.yaml, переопределяет только нужное
-data:
-  tickers: ["AAPL", "MSFT", "GOOGL"]
+# configs/ppo_daily.yaml
+env:
+  reward_type: "log_return"
+  reward_params:
+    scale: 1000.0        # было 100
 
 agent:
-  name: "ppo"
-  learning_rate: 1.0e-4       # чуть меньше для стабильности
+  ent_coef: 0.005
+  learning_rate: 1.0e-4    # можно вернуть к стандарту
 
 training:
-  total_timesteps: 300000
+  total_timesteps: 1000000
+  early_stopping_patience: 20
 
-env:
-  reward_type: "sharpe"
-  reward_params:
-    window: 30
+normalize:
+  norm_obs: true
+  norm_reward: false    # было true
+  clip_obs: 10.0
