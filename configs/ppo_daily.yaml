@@ -1,0 +1,18 @@
+# configs/ppo_daily.yaml
+env:
+  reward_type: "log_return"
+  reward_params:
+    scale: 1000.0        # было 100
+
+agent:
+  ent_coef: 0.005
+  learning_rate: 1.0e-4    # можно вернуть к стандарту
+
+training:
+  total_timesteps: 1000000
+  early_stopping_patience: 20
+
+normalize:
+  norm_obs: true
+  norm_reward: false    # было true
+  clip_obs: 10.0
