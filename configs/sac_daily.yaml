@@ -1,21 +1,31 @@
-# configs/ppo_daily.yaml
+# configs/sac_daily.yaml
+data:
+  tickers: ["AAPL", "MSFT", "GOOGL"]
+
+
 env:
+  hmax: 10
   reward_type: "log_return"
   reward_params:
-    scale: 100.0
+    scale: 1000.0
+    inactivity_penalty: 0.05      # было 0.2 — мягче
+    concentration_penalty: 0.2    # было 0.5 — мягче
+    turnover_penalty: 0.002       # было 0.001 — чуть сильнее
   commission: 0.002      # было 0.001 — вдвое дороже
   slippage: 0.001        # было 0.0005
 
 agent:
   name: "sac"
+  net_arch: [128, 128]
   learning_rate: 1.0e-4
-  buffer_size: 100000
-  learning_starts: 5000
+  buffer_size: 150000
+  learning_starts: 8000
   batch_size: 256
   tau: 0.005
 
 training:
-  total_timesteps: 100000
+  total_timesteps: 200000
+  eval_freq: 10000
   early_stopping_patience: 20
 
 normalize:

@@ -1,16 +1,26 @@
 # configs/ppo_daily.yaml
+data:
+  tickers: ["AAPL", "MSFT", "GOOGL"]
+
 env:
   reward_type: "log_return"
   reward_params:
     scale: 1000.0        # было 100
+    inactivity_penalty: 0.05       # ← сломать коллапс
+    concentration_penalty: 0.1     # ← заставить распределять
+    turnover_penalty: 0.005        # ← сбить churn
+  commission: 0.002      # было 0.001 — вдвое дороже
+  slippage: 0.001        # было 0.0005
+  hmax: 5
 
 agent:
   ent_coef: 0.005
   learning_rate: 1.0e-4    # можно вернуть к стандарту
 
 training:
-  total_timesteps: 1000000
+  total_timesteps: 300000
   early_stopping_patience: 20
+  eval_freq: 10000
 
 normalize:
   norm_obs: true

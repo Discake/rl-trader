@@ -142,4 +142,4 @@ def main(run_dir:str|Path) -> None:
 
 
 if __name__ == "__main__":
-    main("experiments/sac/fold0_seed45")
+    main("experiments/sac_3assets/fold0_seed47")

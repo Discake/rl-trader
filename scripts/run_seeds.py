@@ -21,9 +21,9 @@ from src.utils.config import load_config, save_config
 # Настройки эксперимента
 # ----------------------------------------------------------------------
 
-SEEDS = [45]        # добавьте сюда больше, когда захотите
+SEEDS = [47]        # добавьте сюда больше, когда захотите
 FOLD_INDICES = [0]          # [0, 1, 2] — для полного walk-forward
-EXPERIMENT_NAME = "sac"     # должен совпадать с agent.name в конфиге
+EXPERIMENT_NAME = "sac_3assets"     # должен совпадать с agent.name в конфиге
 CONFIG_PATH = "configs/sac_daily.yaml"
 
 
@@ -72,6 +72,7 @@ def main() -> None:
         end=base_config.data.end,
         interval=base_config.data.interval,
     )
+    print(df.isna().sum())
     df = FeatureProcessor().add_indicators(df, base_config.data)
     splits = WalkForwardSplitter().split(df, base_config.split)
 

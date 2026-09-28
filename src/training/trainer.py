@@ -11,7 +11,7 @@ from stable_baselines3.common.callbacks import (
     EvalCallback,
 )
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
+from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize, SubprocVecEnv
 
 from src.agents import build_agent
 from src.env import TradingEnv
@@ -71,6 +71,9 @@ class Trainer:
 
     def _build_train_env(self):
         vec = DummyVecEnv([make_env(self.train_df, self.config.env)])
+
+        n_envs = 4
+        vec = SubprocVecEnv([make_env(self.train_df, self.config.env) for _ in range(n_envs)])
         vec = VecNormalize(
             vec,
             norm_obs=self.config.normalize.norm_obs,

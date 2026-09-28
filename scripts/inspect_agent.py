@@ -1,6 +1,6 @@
 """Проверяет, что делает обученный агент на тесте."""
 import numpy as np
-from stable_baselines3 import SAC
+from stable_baselines3 import SAC, PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
 from pathlib import Path
@@ -10,7 +10,7 @@ from src.utils.config import load_config
 
 
 def main(run_dir:str|Path):
-    config = load_config("configs/sac_daily.yaml")
+    config = load_config("configs/ppo_daily.yaml")
 
     df = DataLoader(cache_dir=config.paths.data_raw).load(
         tickers=config.data.tickers, start=config.data.start,
@@ -24,7 +24,7 @@ def main(run_dir:str|Path):
     vec.training = False
     vec.norm_reward = False
 
-    model = SAC.load(f"{run_dir}/best_model/best_model", env=vec)
+    model = PPO.load(f"{run_dir}/best_model/best_model", env=vec)
 
     obs = vec.reset()
     actions = []
@@ -59,4 +59,4 @@ def main(run_dir:str|Path):
 
 
 if __name__ == "__main__":
-    main("experiments/sac/fold0_seed45")
+    main("experiments/ppo_3assets_screening/fold0_seed45")
