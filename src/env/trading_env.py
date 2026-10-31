@@ -143,7 +143,9 @@ class TradingEnv(gym.Env):
             "positions": self.positions.copy(),
             "day": self.day,
             "total_fees": self.total_fees,
-            "trade_count": self.trade_count
+            "trade_count": self.trade_count,
+            "prices": prices_next.copy(),    # ← добавьте
+            "action": action.copy(),          # ← добавьте
         }
         reward = self.reward_fn(prev_value, curr_value, info)
 

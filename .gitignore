@@ -225,3 +225,5 @@ __marimo__/
 #Models and checkpoints
 /best_model
 /checkpoints
+/experiments
+/results

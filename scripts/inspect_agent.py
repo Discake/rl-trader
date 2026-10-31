@@ -1,15 +1,16 @@
 """Проверяет, что делает обученный агент на тесте."""
 import numpy as np
-from stable_baselines3 import SAC
+from stable_baselines3 import SAC, PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
+from pathlib import Path
 from src.data import DataLoader, FeatureProcessor, WalkForwardSplitter
 from src.training.trainer import make_env
 from src.utils.config import load_config
 
 
-def main():
-    config = load_config("configs/sac_daily.yaml")
+def main(run_dir:str|Path):
+    config = load_config("configs/ppo_daily.yaml")
 
     df = DataLoader(cache_dir=config.paths.data_raw).load(
         tickers=config.data.tickers, start=config.data.start,
@@ -19,11 +20,11 @@ def main():
     split = WalkForwardSplitter().split(df, config.split)[0]
 
     vec = DummyVecEnv([make_env(split.test, config.env)])
-    vec = VecNormalize.load(f"{config.paths.logs}/vec_normalize.pkl", vec)
+    vec = VecNormalize.load(f"{run_dir}/logs/vec_normalize.pkl", vec)
     vec.training = False
     vec.norm_reward = False
 
-    model = SAC.load(f"{config.paths.best_model}/best_model", env=vec)
+    model = PPO.load(f"{run_dir}/best_model/best_model", env=vec)
 
     obs = vec.reset()
     actions = []
@@ -58,4 +59,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main("experiments/ppo_3assets_screening/fold0_seed45")

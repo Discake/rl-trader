@@ -21,8 +21,8 @@ class WalkForwardSplitter:
 
     Схема (rolling, окна не пересекаются):
         Fold 1: [---train---][-val-][-test-]
-        Fold 2:                          [---train---][-val-][-test-]
-        Fold 3:                                                    ...
+        Fold 2:                             [---train---][-val-][-test-]
+        Fold 3:                                                         ...
 
     Каждый фолд покрывает свой временной период — это проверяет
     устойчивость стратегии к разным рыночным режимам.
@@ -49,7 +49,7 @@ class WalkForwardSplitter:
             )
 
         return Split(
-            train=df.iloc[:train_end].copy(),
+            train=df.iloc[:train_end].copy(), # Бро, тебе надо тренироваться © S1mple
             val=df.iloc[train_end:val_end].copy(),
             test=df.iloc[val_end:].copy(),
         )

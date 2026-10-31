@@ -42,20 +42,46 @@ class PnLReward(RewardFn):
 
 
 class LogReturnReward(RewardFn):
-    """Логарифмическая доходность, масштабированная под RL.
-
-    Без масштабирования reward за шаг ~0.001 — это в 1000 раз меньше,
-    чем в типичных RL-задачах (CartPole: reward=1). Это делает
-    hyperparameters (ent_coef, learning_rate) неадекватными.
-    """
-
-    def __init__(self, scale: float = 100.0) -> None:
+    def __init__(
+        self,
+        scale: float = 1000.0,
+        inactivity_penalty: float = 0.0,
+        concentration_penalty: float = 0.0,
+        turnover_penalty: float = 0.0,
+    ):
         self.scale = scale
+        self.inactivity_penalty = inactivity_penalty
+        self.concentration_penalty = concentration_penalty
+        self.turnover_penalty = turnover_penalty
 
-    def __call__(self, prev_value: float, curr_value: float, info: dict) -> float:
+    def __call__(self, prev_value, curr_value, info):
         if prev_value <= 0.0:
             return 0.0
-        return self.scale * float(np.log(curr_value / prev_value))
+        reward = self.scale * float(np.log(curr_value / prev_value))
+
+        # 1. Штраф за бездействие
+        positions = info.get("positions")
+        if self.inactivity_penalty > 0 and positions is not None:
+            if np.all(positions == 0):
+                reward -= self.inactivity_penalty
+
+        # 2. Штраф за концентрацию (HHI)
+        prices = info.get("prices")
+        if self.concentration_penalty > 0 and positions is not None and prices is not None:
+            values = np.abs(positions * prices)
+            total = values.sum()
+            if total > 0:
+                weights = values / total
+                hhi = float((weights ** 2).sum())
+                concentration = hhi - 1.0 / len(positions)
+                reward -= self.concentration_penalty * concentration
+
+        # 3. Штраф за turnover
+        action = info.get("action")
+        if self.turnover_penalty > 0 and action is not None:
+            reward -= self.turnover_penalty * float(np.abs(action).sum())
+
+        return reward
 
 
 class SharpeReward(RewardFn):
